@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "441396101165",
+    "firebase_url": "https://meld-io.firebaseio.com",
+    "project_id": "meld-io",
+    "storage_bucket": "meld-io.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:441396101165:android:fbf9e0c1061b71bde2b8a4",
+        "android_client_info": {
+          "package_name": "com.example.meld2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "441396101165-6dlmmhsh38r55d7eqikpc8vasq8kd5a8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.meld2",
+            "certificate_hash": "5a9e02c0940cf1d0f348b0557fc4351b50d87d0d"
+          }
+        },
+        {
+          "client_id": "441396101165-efk9gcsct6sh0hcu1b2c5cq14c1qvtb1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyjXUosFXUX-GEJGgpILyWLZYqBTXWrbA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "441396101165-efk9gcsct6sh0hcu1b2c5cq14c1qvtb1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

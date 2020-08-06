@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Meld</string>v
+    <string name="banner">Meld ␥</string>
+    <string name="found_spotify">Spotify Account Linked</string>
+    <string name="found_youtube">YouTube Account Linked</string>
+
+    <string name="title_home">Home</string>
+    <string name="title_playlists">Playlists</string>
+    <string name="title_friends">Friends</string>
+</resources>
