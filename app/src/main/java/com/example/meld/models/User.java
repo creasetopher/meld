@@ -14,6 +14,7 @@ import java.util.Map;
 public class User implements IUser, Parcelable {
 
     private String displayName;
+
     private JSONObject sptifyExternalUrls;
     private JSONObject spotifyFollowers;
 
@@ -29,6 +30,7 @@ public class User implements IUser, Parcelable {
 
     private GoogleAccountCredential googleAccountCredential;
     private JSONObject spotifyUserDataObject;
+    private String spotifyUsername;
 
     private static User instance = null;
 
@@ -37,6 +39,16 @@ public class User implements IUser, Parcelable {
     private User() {
     }
 
+
+    @Override
+    public String getSpotifyUsername() {
+        return spotifyUsername;
+    }
+
+    @Override
+    public void setSpotifyUsername(String username) {
+        this.spotifyUsername = username;
+    }
 
 
     @Override
@@ -90,17 +102,17 @@ public class User implements IUser, Parcelable {
 
     @Override
     public JSONObject getSpotifyUserDataObject() {
-        return null;
+        return this.spotifyUserDataObject;
     }
 
     @Override
     public void setSpotifyUserDataObject(JSONObject userDataObject) {
-
+        this.spotifyUserDataObject = userDataObject;
     }
 
     @Override
     public GoogleAccountCredential getGoogleUserObject() {
-        return null;
+        return this.googleAccountCredential;
     }
 
     @Override

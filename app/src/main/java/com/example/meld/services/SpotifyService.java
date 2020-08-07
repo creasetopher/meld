@@ -120,8 +120,8 @@ public class SpotifyService {
 
                         try {
                             userDataObject = new JSONObject(response);
-                            callbacks.userDataCallback(userDataObject);
-                            Log.v("RESPONSE", userDataObject.toString());
+                            callbacks.userDataCallback(userDataObject, null);
+//                            Log.v("RESPONSE", userDataObject.toString());
 
 
                         } catch (Exception e) {
@@ -166,7 +166,7 @@ public class SpotifyService {
                         try {
                             playlistObject = new JSONObject(response);
                             callbacks.playlistsCallback(playlistObject);
-                            Log.v("playlists", playlistObject.toString());
+//                            Log.v("playlists", playlistObject.toString());
 
 
                         } catch (Exception e) {
@@ -213,7 +213,7 @@ public class SpotifyService {
                             //TODO: add tracks callback
                             playlistObject = new JSONObject(response);
                             callbacks.playlistsCallback(playlistObject);
-                            Log.v("playlists", playlistObject.toString());
+//                            Log.v("playlists", playlistObject.toString());
 
 
                         } catch (Exception e) {
@@ -261,7 +261,7 @@ public class SpotifyService {
                         try {
                             playlistObject = new JSONObject(response);
                             callbacks.playlistsCallback(playlistObject);
-                            Log.v("playlists", playlistObject.toString());
+//                            Log.v("playlists", playlistObject.toString());
 
 
                         } catch (Exception e) {
@@ -305,13 +305,13 @@ public class SpotifyService {
 
                     SpotifyPlaylist parsedPlaylist = new SpotifyPlaylist();
 
-                    Log.v("playlistact", ((JSONObject) playlists.get(i)).toString());
+//                    Log.v("playlistact", ((JSONObject) playlists.get(i)).toString());
 
                     parsedPlaylist.setName(rawPlaylist.getString("name"));
                     parsedPlaylist.setId(rawPlaylist.getString("id"));
 
                     parsedPlaylist.setMetadata(rawPlaylist.getJSONObject("owner"));
-                    Log.v("metadata", (rawPlaylist.getJSONObject("owner").toString()));
+//                    Log.v("metadata", (rawPlaylist.getJSONObject("owner").toString()));
 
 
                     parsedPlaylist.setDescription(rawPlaylist.getString("description"));
@@ -325,7 +325,7 @@ public class SpotifyService {
                         images.add(imagesJsonArray.get(j));
                     }
                     parsedPlaylist.setImageUrls(images);
-                    Log.v("dispplay2?", (new JSONObject(parsedPlaylist.getMetadata().toString())).getString("display_name"));
+//                    Log.v("dispplay2?", (new JSONObject(parsedPlaylist.getMetadata().toString())).getString("display_name"));
                     res.add(parsedPlaylist);
                 }
 
@@ -333,12 +333,12 @@ public class SpotifyService {
                 if (rawPlaylist.getString("type").equals("youtube")) {
                     YouTubePlaylist parsedPlaylist = new YouTubePlaylist();
 
-                    Log.v("playlistact", ((JSONObject) playlists.get(i)).toString());
+//                    Log.v("playlistact", ((JSONObject) playlists.get(i)).toString());
 
                     parsedPlaylist.setName(rawPlaylist.getString("name"));
                     parsedPlaylist.setId(rawPlaylist.getString("id"));
 
-                    Log.v("metadata", (rawPlaylist.getJSONObject("owner").toString()));
+//                    Log.v("metadata", (rawPlaylist.getJSONObject("owner").toString()));
 
 
                     parsedPlaylist.setDescription(rawPlaylist.getString("description"));

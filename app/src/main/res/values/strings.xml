@@ -7,4 +7,10 @@
     <string name="title_home">Home</string>
     <string name="title_playlists">Playlists</string>
     <string name="title_friends">Friends</string>
+
+    <string name="prompt_email">username (not email)</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or sign up</string>
+    <string name="action_sign_in_short">Sign in</string>
+
 </resources>

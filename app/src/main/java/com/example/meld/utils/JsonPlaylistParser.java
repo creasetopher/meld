@@ -24,23 +24,25 @@ public class JsonPlaylistParser {
 //        GsonBuilder builder = new GsonBuilder();
 //        Gson gson = builder.create();
 
-        try {
-            JSONArray playlists = playlistsObjects.getJSONArray("items");
+        if (playlistsObjects != null) {
 
-            for (int i = 0; i < playlists.length(); i++) {
-                JSONObject rawPlaylist = (JSONObject) playlists.get(i);
+            try {
+                JSONArray playlists = playlistsObjects.getJSONArray("items");
 
-                if (rawPlaylist.getString("type").equals("spotify")) {
+                for (int i = 0; i < playlists.length(); i++) {
+                    JSONObject rawPlaylist = (JSONObject) playlists.get(i);
+
+//                if (rawPlaylist.getString("type").equals("spotify")) {
 
                     SpotifyPlaylist parsedPlaylist = new SpotifyPlaylist();
 
-                    Log.v("playlistact", ((JSONObject) playlists.get(i)).toString());
+//                    Log.v("playlistact", ((JSONObject) playlists.get(i)).toString());
 
                     parsedPlaylist.setName(rawPlaylist.getString("name"));
                     parsedPlaylist.setId(rawPlaylist.getString("id"));
 
                     parsedPlaylist.setMetadata(rawPlaylist.getJSONObject("owner"));
-                    Log.v("metadata", (rawPlaylist.getJSONObject("owner").toString()));
+//                    Log.v("metadata", (rawPlaylist.getJSONObject("owner").toString()));
 
 
                     parsedPlaylist.setDescription(rawPlaylist.getString("description"));
@@ -54,32 +56,33 @@ public class JsonPlaylistParser {
                         images.add(imagesJsonArray.get(j));
                     }
                     parsedPlaylist.setImageUrls(images);
-                    Log.v("dispplay2?", (new JSONObject(parsedPlaylist.getMetadata().toString())).getString("display_name"));
+//                    Log.v("dispplay2?", (new JSONObject(parsedPlaylist.getMetadata().toString())).getString("display_name"));
                     res.add(parsedPlaylist);
+//                }
+
+
+//                if (rawPlaylist.getString("type").equals("youtube")) {
+//                    YouTubePlaylist parsedPlaylist = new YouTubePlaylist();
+//
+//                    Log.v("playlistact", ((JSONObject) playlists.get(i)).toString());
+//
+//                    parsedPlaylist.setName(rawPlaylist.getString("name"));
+//                    parsedPlaylist.setId(rawPlaylist.getString("id"));
+//
+//                    Log.v("metadata", (rawPlaylist.getJSONObject("owner").toString()));
+//
+//
+//                    parsedPlaylist.setDescription(rawPlaylist.getString("description"));
+//                    parsedPlaylist.setType(IPlaylist.PlaylistType.YOUTUBE);
+//                    res.add(parsedPlaylist);
+//
+//                }
                 }
 
 
-                if (rawPlaylist.getString("type").equals("youtube")) {
-                    YouTubePlaylist parsedPlaylist = new YouTubePlaylist();
-
-                    Log.v("playlistact", ((JSONObject) playlists.get(i)).toString());
-
-                    parsedPlaylist.setName(rawPlaylist.getString("name"));
-                    parsedPlaylist.setId(rawPlaylist.getString("id"));
-
-                    Log.v("metadata", (rawPlaylist.getJSONObject("owner").toString()));
-
-
-                    parsedPlaylist.setDescription(rawPlaylist.getString("description"));
-                    parsedPlaylist.setType(IPlaylist.PlaylistType.YOUTUBE);
-                    res.add(parsedPlaylist);
-
-                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-
-
-        } catch (JSONException e) {
-            e.printStackTrace();
         }
         return res;
 

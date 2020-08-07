@@ -5,7 +5,7 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/navigation_home">
 
-    <activity
+    <fragment
         android:id="@+id/navigation_home"
         android:name="com.example.meld.ui.home.HomeFragment"
         android:label="@string/title_home"

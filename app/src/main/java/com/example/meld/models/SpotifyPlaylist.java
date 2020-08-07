@@ -40,11 +40,9 @@ public class SpotifyPlaylist implements IPlaylist{
         }
         else {
             try {
-//                Log.v("wut???", this.metadata.toString());
                 return new JSONObject(this.getMetadata().toString()).getString("display_name");
             }
             catch (Exception e) {
-                Log.v("metabool???", Boolean.toString(this.getMetadata() != null));
                 return "Could not fetch playlist name";
             }
         }
@@ -114,6 +112,6 @@ public class SpotifyPlaylist implements IPlaylist{
     @Override
     public String toString() {
         String displayName = this.getName();
-        return String.format("%s    |     %s", displayName, this.isPublic().toString());
+        return String.format("%s    |     %s", displayName, this.getType().toString());
     }
 }

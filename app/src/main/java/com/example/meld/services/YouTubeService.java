@@ -113,7 +113,8 @@ public class YouTubeService {
     }
 
     public void fetchUserData() {
-        this.callbacks.userDataCallback(credential);
+        Log.v("credential from ytservice", Boolean.toString(this.credential != null ));
+        this.callbacks.userDataCallback(credential, null);
     }
 
     public void fetchPlaylists() {
@@ -153,10 +154,10 @@ public class YouTubeService {
 
                 playlistMap.put(playlist, playlistItems);
 
-//                this.callbacks.playlistsCallback(playlistMap);
 
             }
 
+            this.callbacks.playlistsCallback(playlistMap);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -166,7 +167,7 @@ public class YouTubeService {
 
 
     public void fetchPlaylistList() {
-
+        Log.v("youtubeservice", "go here");
         try {
             YouTube.Playlists.List playlistRequest =
                     youTubeInstance
@@ -196,7 +197,7 @@ public class YouTubeService {
                         tracksRequest
                                 .setPlaylistId(playlist.getId()).execute();
 
-                Log.v("Playlist Items Resp", playlistItemListResponse.toPrettyString());
+//                Log.v("Playlist Items Resp", playlistItemListResponse.toPrettyString());
 
                 playlistItems.addAll(playlistItemListResponse.getItems());
 
@@ -206,22 +207,9 @@ public class YouTubeService {
             e.printStackTrace();
         }
 
+        this.callbacks.playlistsCallback(playlistMap);
 
-        List<IPlaylist> res = new ArrayList<>();
-        for (Playlist playlist : playlistMap.keySet()) {
-            YouTubePlaylist youTubePlaylist = new YouTubePlaylist();
-
-            youTubePlaylist.setType(IPlaylist.PlaylistType.YOUTUBE);
-            youTubePlaylist.setName(playlist.getSnippet().getTitle());
-            youTubePlaylist.setId(playlist.getId());
-            youTubePlaylist.setDescription(playlist.getSnippet().getDescription());
-
-            res.add(youTubePlaylist);
-
-        }
-
-
-        this.callbacks.playlistsCallback(res);
+        Log.v("Playlist Map at end", playlistMap.toString());
 
     }
 

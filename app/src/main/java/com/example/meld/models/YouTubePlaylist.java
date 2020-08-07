@@ -9,15 +9,21 @@ public class YouTubePlaylist implements IPlaylist {
     private String name;
     private String description;
     private PlaylistType type;
+    Boolean visibility;
 
     public YouTubePlaylist() {
 
     }
 
+    public void setVisibility(String visibility) {
+        this.visibility = Boolean.parseBoolean(visibility);
+    }
+
+
 
     @Override
     public Boolean isPublic() {
-        return null;
+        return this.visibility;
     }
 
     public void setId(String id) {
@@ -69,5 +75,11 @@ public class YouTubePlaylist implements IPlaylist {
     @Override
     public List<Object> getImageUrls() {
         return null;
+    }
+
+    @Override
+    public String toString() {
+        String displayName = this.getName();
+        return String.format("%s    |     %s", displayName, this.getType().toString());
     }
 }

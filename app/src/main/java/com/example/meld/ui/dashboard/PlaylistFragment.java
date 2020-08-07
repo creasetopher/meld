@@ -2,41 +2,49 @@ package com.example.meld.ui.dashboard;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentResultListener;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
-import com.example.meld.PlaylistsActivity;
+import com.example.meld.MainActivity;
 import com.example.meld.R;
+import com.example.meld.models.ICallback;
 import com.example.meld.models.IPlaylist;
 import com.example.meld.models.IUser;
+import com.example.meld.models.YouTubePlaylist;
 import com.example.meld.services.SpotifyService;
+import com.example.meld.utils.JsonPlaylistParser;
+import com.example.meld.utils.MapPlaylistParser;
+import com.google.api.services.youtube.model.Playlist;
+import com.google.api.services.youtube.model.PlaylistItem;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import info.androidhive.fontawesome.FontDrawable;
 
 public class PlaylistFragment extends Fragment {
 
-    public String userDataObject;
-    public String playlistsObjectString;
+    public String spotifyUserDataObject;
+    public JSONObject spotifyPlaylistsObject;
 
+    public  Map<Playlist, List<PlaylistItem>> youTubePlaylistMap;
+
+
+
+    MainActivity theActivity;
     String accessToken;
     IUser user;
     public static ArrayAdapter<String> listAdapter;
@@ -49,38 +57,10 @@ public class PlaylistFragment extends Fragment {
 
 
 
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        getParentFragmentManager().setFragmentResultListener("user", this, new FragmentResultListener() {
-            @Override
-            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
-                user = (IUser)result.get("user");
-            }
-        });
-
-//        f.set
-
-//        setTargetFragment();
-//        getParentFragmentManager().s
-//                setFragmentResultListener("key", this, new FragmentResultListener() {
-//            @Override
-//            public void onFragmentResult(@NonNull String key, @NonNull Bundle bundle) {
-//                // We use a String here, but any type that can be put in a Bundle is supported
-//                String result = bundle.getString("bundleKey");
-//                // Do something with the result...
-//            }
-//        });
-    }
-
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_playlists, container, false);
 //        final TextView textView = root.findViewById(R.id.text_dashboard);
-
 
         listAdapter = new ArrayAdapter(
                 getContext(),
@@ -98,6 +78,14 @@ public class PlaylistFragment extends Fragment {
     public void onViewCreated(@NonNull final View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        theActivity = (MainActivity)getActivity();
+
+        //this is how the main activity sends playlist data to playlist frag
+        // after activty fetches playlists, it hands data back to this frag through
+        // this.playlistsCallback
+        theActivity.registerFragmentSpotifyCallback(new SpotifyCallbacks());
+        theActivity.registerFragmentYouTubeCallback(new YouTubeCallbacks());
+
         listView = (ListView) view.findViewById(R.id.playlists_listview);
 
         listView.setAdapter(listAdapter);
@@ -111,22 +99,69 @@ public class PlaylistFragment extends Fragment {
         });
 
 
+        theActivity.fetchSpotifyPlaylists();
+        theActivity.fetchYouTubePlaylists();
 
-        try {
-            ArrayList<IPlaylist> temp = new ArrayList<>();
-//            JSONObject playlistsObjectJson = new JSONObject(playlistsObjectString);
 
-            allPlaylists.clear();
-//            allPlaylists.addAll(JsonPlaylistParser.toJsonObjectArray(playlistsObjectJson));
-            listAdapter.notifyDataSetChanged();
+    }
+
+    private void populatePlaylistView() {
+//        allPlaylists.clear();
+        allPlaylists.addAll(JsonPlaylistParser.toArrayList(spotifyPlaylistsObject));
+        allPlaylists.addAll(MapPlaylistParser.toArrayList(youTubePlaylistMap));
+        listAdapter.notifyDataSetChanged();
+    }
+
+
+    public class SpotifyCallbacks implements ICallback {
+
+        // make the playlist button visible here, after user data and user id is fetched
+        public void userDataCallback(Object obj, IUser updatedUser) {
+
+
 
         }
 
-        catch (Exception e) {
-            e.printStackTrace();
+        public void playlistsCallback(Object obj) {
+            spotifyPlaylistsObject = (JSONObject) obj;
+            populatePlaylistView();
+
+        }
+    }
+
+    public class YouTubeCallbacks implements ICallback {
+
+
+
+        public void userDataCallback(Object obj, IUser updatedUser) {
+
+        }
+
+        public void playlistsCallback(Object obj) {
+
+            youTubePlaylistMap = (Map<Playlist, List<PlaylistItem>>) obj;
+
+
+//            Log.v("FROM PACT", youTubePlaylistMap.toString());
+
+
+            textHandler.post(() -> populatePlaylistView());
+
+
+//        return res;
+            // need a youtube playlist impl
+
+
         }
 
 
     }
+
+
+
+
+
+
+
 
 }

@@ -17,6 +17,10 @@ public interface IUser {
 
     public JSONObject getSpotifyUserDataObject();
 
+    public String getSpotifyUsername();
+
+    public void setSpotifyUsername(String username);
+
     public void setSpotifyUserDataObject(JSONObject userDataObject);
 
     public GoogleAccountCredential getGoogleUserObject();

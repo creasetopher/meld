@@ -1,5 +1,7 @@
 package com.example.meld.utils;
 
+import android.util.Log;
+
 import com.example.meld.models.IPlaylist;
 import com.example.meld.models.YouTubePlaylist;
 import com.google.api.services.youtube.YouTube;
@@ -16,22 +18,26 @@ import java.util.Map;
 public class MapPlaylistParser {
 
 
-//    method returning list of playlists as JSONObject
 
     public static List<IPlaylist> toArrayList(Map<Playlist, List<PlaylistItem>> playlistMap) {
         List<IPlaylist> res = new ArrayList<>();
         for (Playlist playlist : playlistMap.keySet()) {
+            Log.v("a playlistr", playlist.toString());
+
             YouTubePlaylist youTubePlaylist = new YouTubePlaylist();
 
             youTubePlaylist.setType(IPlaylist.PlaylistType.YOUTUBE);
             youTubePlaylist.setName(playlist.getSnippet().getTitle());
             youTubePlaylist.setId(playlist.getId());
             youTubePlaylist.setDescription(playlist.getSnippet().getDescription());
+            youTubePlaylist.setVisibility(playlist.getStatus().getPrivacyStatus());
 
             res.add(youTubePlaylist);
 
         }
+        Log.v("from map parser", res.toString());
     return res;
+
     }
 
 

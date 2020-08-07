@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.example.meld.models.ICallback;
 import com.example.meld.models.IPlaylist;
+import com.example.meld.models.IUser;
 import com.example.meld.models.YouTubePlaylist;
 import com.example.meld.utils.MapPlaylistParser;
 import com.google.api.services.youtube.model.Playlist;
@@ -15,8 +16,10 @@ import java.util.Map;
 
 public class YouTubeCallbacks implements ICallback {
 
-    public void userDataCallback(Object obj) {
+    public void userDataCallback(Object obj, IUser user) {
     }
+
+
 
     public void playlistsCallback(Object obj) {
 //            playlistsObjectString = (JSONObject) obj;
