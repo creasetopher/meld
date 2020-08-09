@@ -1,5 +1,6 @@
 package com.example.meld;
 
+import android.Manifest;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Context;
@@ -48,6 +49,7 @@ import androidx.navigation.ui.NavigationUI;
 import com.example.meld.services.SpotifyService;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.youtube.model.Playlist;
 import com.google.api.services.youtube.model.PlaylistItem;
 import com.google.firebase.auth.FirebaseAuth;
@@ -74,7 +76,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
+
 public class MainActivity extends AppCompatActivity {
+
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
@@ -82,6 +88,16 @@ public class MainActivity extends AppCompatActivity {
     private IPlaylist tappedPlaylist = null;
     private String tappedFriend;
     private Boolean playlistArrayIsLocked = false;
+
+
+
+    private Boolean isNewUser;
+
+    private Boolean spotifyPlaylistsWasFetched = false;
+
+    private Boolean youTubePlaylistsWasFetched = false;
+    private Boolean tracksWereFetched = false;
+
 
 
 
@@ -95,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
     RequestQueue requestQueue;
     IUser currentUser;
 
+    GoogleAccountCredential credential;
     private String spotifyAccessToken;
 
     private Boolean hasSpotify = false;
@@ -125,9 +142,14 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
 
+        credential = GoogleAccountCredential.usingOAuth2(
+                this, Arrays.asList("https://www.googleapis.com/auth/youtube.readonly"))
+                .setBackOff(new ExponentialBackOff());
 
 
         firebaseAuth = FirebaseAuth.getInstance();
+
+        isNewUser = getIntent().getBooleanExtra("isNewUser", false);
 
         if(firebaseAuth.getCurrentUser() != null) {
             firebaseUser = firebaseAuth.getCurrentUser();
@@ -147,6 +169,30 @@ public class MainActivity extends AppCompatActivity {
         Runnable runnableThread = new runnableThread();
         new Thread(runnableThread).start();
 
+    }
+
+    public Boolean getSpotifyPlaylistsWasFetched() {
+        return spotifyPlaylistsWasFetched;
+    }
+
+    public void setSpotifyPlaylistsWasFetched(Boolean spotifyPlaylistsWasFetched) {
+        this.spotifyPlaylistsWasFetched = spotifyPlaylistsWasFetched;
+    }
+
+    public Boolean getYouTubePlaylistsWasFetched() {
+        return youTubePlaylistsWasFetched;
+    }
+
+    public void setYouTubePlaylistsWasFetched(Boolean youTubePlaylistsWasFetched) {
+        this.youTubePlaylistsWasFetched = youTubePlaylistsWasFetched;
+    }
+
+    public Boolean getTracksWereFetched() {
+        return this.tracksWereFetched;
+    }
+
+    public void setTracksWereFetched(Boolean tracksWereFetched) {
+        this.tracksWereFetched = tracksWereFetched;
     }
 
     public FirebaseUser getFirebaseUser() {
@@ -181,20 +227,13 @@ public class MainActivity extends AppCompatActivity {
                     new Thread(runnableThread).start();
 
 
-//                after token, make userdata request.
-//                in callback (Which should prob be in this class), update UI (maybe a toast?),
-//                with success method and store data in singleton user
-
-//                getUserDataButton.setVisibility(View.VISIBLE);
-
-
                 } else {
                     Log.v("TOKENNULL", response.getAccessToken());
 
                 }
             }
 
-            if (requestCode == YouTubeService.REQUEST_CODE_SELECT_ACCOUNT) {
+            if (requestCode == YouTubeService.SELECT_YT_ACCOUNT_CODE) {
                 if (resultCode == RESULT_OK && data != null &&
                         data.getExtras() != null) {
                     String accountName =
@@ -206,6 +245,8 @@ public class MainActivity extends AppCompatActivity {
                         editor.putString("accountName", accountName);
                         editor.apply();
                         youTubeService.getCredential().setSelectedAccountName(accountName);
+                        youTubeService.fetchUserData();
+
 //                        youTubeService.fetchUserData();
 
                     }
@@ -216,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
 
 
     public void test() {
@@ -235,9 +277,73 @@ public class MainActivity extends AppCompatActivity {
         spotifyService.authenticateWithSpotifyApp(this);
     }
 
+
+
+
+
+
+
+
+
+    @AfterPermissionGranted(YouTubeService.SELECT_YT_ACCOUNT_CODE)
     public void authenticateYouTube() {
+//        Toast.makeText(getApplicationContext(), "Permissions granted! Yay!", Toast.LENGTH_SHORT).show();
+
         youTubeService.authenticate();
+
+//        this.authenticate();
     }
+
+    public Boolean isNewUser() {
+        return isNewUser;
+    }
+
+    public void setNewUser(Boolean newUser) {
+        isNewUser = newUser;
+    }
+
+
+
+
+//    @AfterPermissionGranted(REQ)
+//    public void authenticate() {
+//        Log.v("authCalled","it was" );
+//
+//
+//        if (EasyPermissions.hasPermissions(
+//                this, Manifest.permission.GET_ACCOUNTS)) {
+//
+//            String accountName = this.getPreferences(Context.MODE_PRIVATE)
+//                    .getString("accountName", null);
+//
+//            if (accountName != null) {
+//
+//
+//                credential.setSelectedAccountName(accountName);
+////                fetchUserData();
+//                try {
+//                    Log.v("credential", credential.getToken());
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+////                fetchPlaylists();
+//            } else {
+//
+//                // select a g account
+//                this.startActivityForResult(
+//                        credential.newChooseAccountIntent(),
+//                        0);
+////                fetchUserData();
+//            }
+//        } else {
+//            // Request the GET_ACCOUNTS permission via a user dialog
+//            EasyPermissions.requestPermissions(this,
+//                    "Please authenticate using a Google Account on this device.",
+//                    REQ,
+//                    Manifest.permission.GET_ACCOUNTS);
+//        }
+//
+
 
     public void fetchSpotifyPlaylists() {
         spotifyService.fetchPlaylistList(
@@ -331,8 +437,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        EasyPermissions.onRequestPermissionsResult(
+                requestCode, permissions, grantResults, this);
+    }
 
 
     public class YouTubeCallbacks implements ICallback {

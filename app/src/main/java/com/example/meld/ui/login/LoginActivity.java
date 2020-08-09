@@ -96,7 +96,7 @@ public class LoginActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
 
         if(firebaseAuth.getCurrentUser() != null){
-            goToHomeScreen();
+            goToHomeScreen(false);
         }
 
 
@@ -189,8 +189,10 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    private void goToHomeScreen() {
+    private void goToHomeScreen(Boolean isNewUser) {
+
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        intent.putExtra("isNewUser", isNewUser);
         startActivity(intent);
         finish();
     }
@@ -278,7 +280,7 @@ public class LoginActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // sign in success
                             addUserToDatabase();
-                            goToHomeScreen();
+                            goToHomeScreen(true);
                         }
                     }
                 });
@@ -296,7 +298,7 @@ public class LoginActivity extends AppCompatActivity {
 
                                 if (task.isSuccessful()) {
 
-                                    goToHomeScreen();
+                                    goToHomeScreen(false);
                                 }
 
 

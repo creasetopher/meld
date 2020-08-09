@@ -4,7 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 
 import com.example.meld.PlaylistsActivity;
@@ -42,10 +44,13 @@ import java.util.stream.Collectors;
 
 import javax.crypto.AEADBadTagException;
 
-public class YouTubeService {
+public class YouTubeService implements EasyPermissions.PermissionCallbacks {
 
     public static final int REQUEST_CODE_PERMISSION_GET_ACCOUNTS = 1;
     public static final int REQUEST_CODE_SELECT_ACCOUNT = 2;
+
+    public static final int SELECT_YT_ACCOUNT_CODE = 1004;
+
 
     private static final String SAVED_ACCOUNT_KEY = "accountName";
     GoogleAccountCredential credential;
@@ -77,8 +82,9 @@ public class YouTubeService {
                 credential).build();
     }
 
-    @AfterPermissionGranted(REQUEST_CODE_PERMISSION_GET_ACCOUNTS)
     public void authenticate() {
+        Log.v("authcalled", "isit");
+
         if (EasyPermissions.hasPermissions(
                 this.activityContext, Manifest.permission.GET_ACCOUNTS)) {
 
@@ -99,7 +105,7 @@ public class YouTubeService {
                 // select a g account
                 this.activityContext.startActivityForResult(
                         credential.newChooseAccountIntent(),
-                        REQUEST_CODE_SELECT_ACCOUNT);
+                        SELECT_YT_ACCOUNT_CODE);
 //                fetchUserData();
             }
         } else {
@@ -107,10 +113,34 @@ public class YouTubeService {
             EasyPermissions.requestPermissions(
                     this.activityContext,
                     "Please authenticate using a Google Account on this device.",
-                    REQUEST_CODE_PERMISSION_GET_ACCOUNTS,
+                    SELECT_YT_ACCOUNT_CODE,
                     Manifest.permission.GET_ACCOUNTS);
         }
     }
+
+
+
+    @Override
+    public void onPermissionsGranted(int requestCode, List<String> list) {
+        Toast.makeText(activityContext.getApplicationContext(), "Permissions granted! Yay!", Toast.LENGTH_SHORT).show();
+        Log.v("callback", "isit");
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, List<String> list) {
+        Toast.makeText(activityContext.getApplicationContext(), "permission denied - this app needs permission to work!", Toast.LENGTH_SHORT).show();
+    }
+
+
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        activityContext.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        EasyPermissions.onRequestPermissionsResult(
+//                requestCode, permissions, grantResults, this);
+    }
+
+
 
     public void fetchUserData() {
         Log.v("credential from ytservice", Boolean.toString(this.credential != null ));

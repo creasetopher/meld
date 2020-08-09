@@ -172,6 +172,7 @@ public class YoutubeApiTestActivity extends AppCompatActivity implements EasyPer
 
     @AfterPermissionGranted(REQUEST_PERMISSION_GET_ACCOUNTS)
     private void chooseAccount() {
+        Log.v("its was", "Called");
         if (EasyPermissions.hasPermissions(
                 this, Manifest.permission.GET_ACCOUNTS)) {
             String accountName = getPreferences(Context.MODE_PRIVATE)

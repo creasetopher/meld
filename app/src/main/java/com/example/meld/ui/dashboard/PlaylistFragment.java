@@ -103,7 +103,7 @@ public class PlaylistFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 IPlaylist playlist = (IPlaylist) listView.getItemAtPosition(position);
                 theActivity.setTappedPlaylist(playlist);
-                if(playlist.getTracks() != null) {
+                if(playlist.getTracks() != null && theActivity.getTracksWereFetched()) {
                     NavHostFragment.findNavController(PlaylistFragment.this)
                             .navigate(R.id.action_navigation_playlists_to_navigation_tracks);
 //                Log.v("thetracks", playlist.getTracks().toString());
@@ -111,15 +111,19 @@ public class PlaylistFragment extends Fragment {
             }
         });
 
-        if(theActivity.doesHaveSpotify()) {
+        if(theActivity.doesHaveSpotify() && !theActivity.getSpotifyPlaylistsWasFetched()) {
             theActivity.fetchSpotifyPlaylists();
+            theActivity.setSpotifyPlaylistsWasFetched(true);
 
 
         }
 
-        if(theActivity.doesHaveYouTube()) {
+        if(theActivity.doesHaveYouTube() && !theActivity.getYouTubePlaylistsWasFetched()) {
             theActivity.fetchYouTubePlaylists();
+            theActivity.setYouTubePlaylistsWasFetched(true);
+
         }
+
 
     }
 
@@ -143,6 +147,12 @@ public class PlaylistFragment extends Fragment {
         this.theActivity.unlockPlaylistArray();
 //        arrayIsLocked = false;
     }
+
+//    private Boolean areTracksReady() {
+//        return this.tracksAreReady;
+//    }
+
+
 
 
     public class SpotifyCallbacks implements ICallback {
@@ -185,7 +195,12 @@ public class PlaylistFragment extends Fragment {
                 JsonPlaylistParser.addTracks(allPlaylists.get(i), tobjs.get(i));
             }
 
-            persistAllPlaylists();
+            theActivity.setTracksWereFetched(true);
+
+
+            if(theActivity.isNewUser()){
+                persistAllPlaylists();
+            }
 
 
         }
