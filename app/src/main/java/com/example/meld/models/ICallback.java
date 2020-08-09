@@ -8,5 +8,7 @@ public interface ICallback {
 
     public void playlistsCallback(Object obj);
 
+    public void tracksCallback(Object obj);
+
 //    public void homeFragmentCallback(Object obj);
 }

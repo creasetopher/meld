@@ -3,6 +3,7 @@ package com.example.meld.models;
 import com.example.meld.services.YouTubeService;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class YouTubePlaylist implements IPlaylist {
     private String id;
@@ -10,6 +11,7 @@ public class YouTubePlaylist implements IPlaylist {
     private String description;
     private PlaylistType type;
     Boolean visibility;
+    List<String> tracks;
 
     public YouTubePlaylist() {
 
@@ -54,8 +56,13 @@ public class YouTubePlaylist implements IPlaylist {
     }
 
     @Override
-    public Object getTracks() {
-        return null;
+    public List<String> getTracks() {
+        return this.tracks;
+    }
+
+    @Override
+    public void setTracks(List<String> tracks) {
+        this.tracks = tracks;
     }
 
     @Override

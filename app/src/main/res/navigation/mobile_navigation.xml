@@ -15,11 +15,54 @@
         android:id="@+id/navigation_playlists"
         android:name="com.example.meld.ui.dashboard.PlaylistFragment"
         android:label="@string/title_playlists"
-        tools:layout="@layout/fragment_playlists" />
+        tools:layout="@layout/fragment_playlists" >
+        <action
+            android:id="@+id/action_navigation_playlists_to_navigation_tracks"
+            app:destination="@id/navigation_tracks" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_friends"
-        android:name="com.example.meld.ui.notifications.NotificationsFragment"
+        android:name="com.example.meld.ui.friends.FriendsFragment"
         android:label="@string/title_friends"
-        tools:layout="@layout/fragment_notifications" />
+        tools:layout="@layout/fragment_friends" >
+        <action
+            android:id="@+id/action_navigation_friends_to_navigation_add_friend"
+            app:destination="@id/navigation_add_friend" />
+        <action
+            android:id="@+id/action_navigation_friends_to_navigation_friends_playlist"
+            app:destination="@id/navigation_friends_playlist" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_add_friend"
+        android:name="com.example.meld.ui.friends.AddFriendFragment"
+        android:label="@string/title_friends"
+        tools:layout="@layout/fragment_add_friend" />
+
+    <fragment
+        android:id="@+id/navigation_tracks"
+        android:name="com.example.meld.ui.dashboard.TracksFragment"
+        android:label="@string/title_tracks"
+        tools:layout="@layout/fragment_tracks" >
+        <action
+            android:id="@+id/action_navigation_tracks_to_navigation_share_playlist"
+            app:destination="@id/navigation_share_playlist" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_friends_playlist"
+        android:name="com.example.meld.ui.friends.FriendPlaylistFragment"
+        android:label="@string/title_friend_playlists"
+        tools:layout="@layout/fragment_friend_playlists" />
+
+    <fragment
+        android:id="@+id/navigation_share_playlist"
+        android:name="com.example.meld.ui.friends.PlaylistShareFragment"
+        android:label="@string/title_playlist_share"
+        tools:layout="@layout/fragment_playlist_share" />
+
+
+
 </navigation>

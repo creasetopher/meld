@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
@@ -23,13 +24,18 @@ import com.example.meld.models.User;
 import com.example.meld.models.YouTubePlaylist;
 import com.example.meld.services.ApiCallTypes;
 import com.example.meld.services.NetworkRequest;
-import com.example.meld.services.YouTubeCallbacks;
+//import com.example.meld.services.YouTubeCallbacks;
 import com.example.meld.services.YouTubeService;
 import com.example.meld.ui.home.HomeFragment;
 import com.example.meld.utils.JsonPlaylistParser;
 import com.example.meld.utils.MapPlaylistParser;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -44,20 +50,40 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.services.youtube.model.Playlist;
 import com.google.api.services.youtube.model.PlaylistItem;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import com.spotify.sdk.android.auth.AuthorizationResponse;
+
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
+
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private IPlaylist tappedPlaylist = null;
+    private String tappedFriend;
+    private Boolean playlistArrayIsLocked = false;
+
+
 
     private Handler textHandler = new Handler();
 
@@ -71,6 +97,12 @@ public class MainActivity extends AppCompatActivity {
 
     private String spotifyAccessToken;
 
+    private Boolean hasSpotify = false;
+    private Boolean hasYouTube = false;
+    private List<String> friends = new ArrayList<>();
+
+
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -79,19 +111,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        //                setup network request queue and services
-        requestQueue = Volley.newRequestQueue(this);
-        spotifyService = new SpotifyService(new SpotifyCallbacks());
-        youTubeService = new YouTubeService(
-                getApplicationContext(),
-                this,
-                new YouTubeCallbacks()
-        );
-
-        currentUser = User.getInstance();
-
-
 
         setContentView(R.layout.activity_main);
         BottomNavigationView navView = findViewById(R.id.nav_view);
@@ -106,6 +125,32 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
 
+
+
+        firebaseAuth = FirebaseAuth.getInstance();
+
+        if(firebaseAuth.getCurrentUser() != null) {
+            firebaseUser = firebaseAuth.getCurrentUser();
+        }
+
+
+        //                setup network request queue and services
+        requestQueue = Volley.newRequestQueue(this);
+        spotifyService = new SpotifyService(new SpotifyCallbacks());
+        youTubeService = new YouTubeService(
+                getApplicationContext(),
+                this,
+                new YouTubeCallbacks()
+        );
+
+        currentUser = User.getInstance();
+        Runnable runnableThread = new runnableThread();
+        new Thread(runnableThread).start();
+
+    }
+
+    public FirebaseUser getFirebaseUser() {
+        return this.firebaseUser;
     }
 
     @Override
@@ -144,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                 } else {
-                    Log.v("TOKENULL", response.getAccessToken());
+                    Log.v("TOKENNULL", response.getAccessToken());
 
                 }
             }
@@ -220,10 +265,48 @@ public class MainActivity extends AppCompatActivity {
 //        youTubeService.fetchPlaylistList();
     }
 
+    public void fetchYouTubePlaylistTracks() {
+        youTubeService.setCallType(ApiCallTypes.PLAYLISTS);
+
+        NetworkRequest.YouTubeApiCall runnableThread =
+                new NetworkRequest.YouTubeApiCall(
+                        youTubeService,
+                        currentUser
+                );
+
+        new Thread(runnableThread).start();
+
+    }
+
+    public void fetchSpotifyPlaylistsTracks(List<IPlaylist> playlists) {
+        spotifyService.setCallType(ApiCallTypes.TRACKS);
+        spotifyService.setPlaylistsToFetchTracks(playlists);
+
+        NetworkRequest.SpotifyApiCall runnableThread =
+                new NetworkRequest.SpotifyApiCall(spotifyService,
+                        requestQueue,
+                        currentUser);
+
+        new Thread(runnableThread).start();
+
+//        spotifyService.fetchTracks(
+//                requestQueue,
+//                spotifyAccessToken,
+//                playlistId
+//        );
+    }
+
+
+
+
+
 
     public class SpotifyCallbacks implements ICallback {
 
-
+        @Override
+        public void tracksCallback(Object obj) {
+            fragmentSpotifyCallbacks.tracksCallback(obj);
+        }
 
         // make the playlist button visible here, after user data and user id is fetched
         public void userDataCallback(Object obj, IUser user) {
@@ -235,14 +318,6 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             fragmentSpotifyCallbacks.userDataCallback(obj, currentUser);
-//            JSONObject userDataObj = (JSONObject) obj;
-//            user.setSpotifyUserDataObject(userDataObj);
-//
-//            View spotifyButtonView = root.findViewById(R.id.spotify_button_view);
-//            spotifyButtonView.setVisibility(View.INVISIBLE);
-//            View foundSpotifyTextView = root.findViewById(R.id.found_spotify_view);
-//            foundSpotifyTextView.setVisibility(View.VISIBLE);
-
 
 
         }
@@ -269,43 +344,27 @@ public class MainActivity extends AppCompatActivity {
             currentUser.setGoogleUserObject(accountCredential);
             currentUser.setSelectedGoogleAccountName(accountCredential.getSelectedAccountName());
             fragmentYouTubeCallbacks.userDataCallback(obj, currentUser);
-//            GoogleAccountCredential credential = (GoogleAccountCredential)obj;
-//            try {
-//                //dont get token in main thread, maybe give it back in callback?
-//                Log.v("credential", credential.getToken());
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//
-//            View spotifyButtonView = root.findViewById(R.id.youtube_button_view);
-//            spotifyButtonView.setVisibility(View.INVISIBLE);
-//            View foundYoutubeText = root.findViewById(R.id.found_youtube_view);
-//            foundYoutubeText.setVisibility(View.VISIBLE);
-
 
         }
 
         public void playlistsCallback(Object obj) {
-            //            playlistsObjectString = (JSONObject) obj;
-//            Map<Playlist, List<PlaylistItem>>
-//                    youTubePlaylistMap = (Map<Playlist, List<PlaylistItem>>) obj;
 
-//            List<IPlaylist> res = new ArrayList<>();
-//            for (Playlist playlist : youTubePlaylistMap.keySet()) {
-//                YouTubePlaylist youTubePlaylist = new YouTubePlaylist();
-//
-//                youTubePlaylist.setType(IPlaylist.PlaylistType.YOUTUBE);
-//                youTubePlaylist.setName(playlist.getSnippet().getTitle());
-//                youTubePlaylist.setId(playlist.getId());
-//                youTubePlaylist.setDescription(playlist.getSnippet().getDescription());
-//
-//                res.add(youTubePlaylist);
-
-//            }
-            //        return res;
-            // need a youtube playlist impl
-//            Log.v("FROM main", obj.toString());
             fragmentYouTubeCallbacks.playlistsCallback(obj);
+
+        }
+
+        @Override
+        public void tracksCallback(Object obj) {
+            Map<Playlist, List<PlaylistItem>> youTubePlaylistMap = (Map<Playlist, List<PlaylistItem>>) obj;
+            List<String> tracks = new ArrayList<>();
+            for(Playlist playlist : youTubePlaylistMap.keySet()) {
+                for(PlaylistItem track : youTubePlaylistMap.get(playlist)) {
+                    tracks.add(track.getSnippet().getTitle());
+                }
+            }
+
+            fragmentYouTubeCallbacks.tracksCallback(tracks);
+
 
         }
 
@@ -317,7 +376,153 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private void addPlaylistToDatabase(IPlaylist playlist) {
+
+        Map<String, Object> playlistMap = new HashMap<>();
+
+        playlistMap.put("owner", firebaseUser.getEmail());
+        playlistMap.put("type", playlist.getType().toString());
+//        playlistMap.put("tracks", Arrays.asList())
+
+        db.collection("playlists").document().set(playlistMap).addOnSuccessListener(
+                new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d("DBOps", "playlist successfully written to DB!");
+//                        fetchNewUserToken();
+                    }
+                }
+        ).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w("DBOps", "Error writing playlist to DB! :(", e);
+            }
+        });
+
+    }
+
+    public void spotifyValidated() {
+        this.hasSpotify = true;
+
+    }
+
+    public void youTubeValidated() {
+        this.hasYouTube = true;
+    }
+
+    public Boolean doesHaveSpotify() {
+        return this.hasSpotify;
+
+
+    }
+
+    public Boolean doesHaveYouTube() {
+        return this.hasYouTube;
+    }
+
+    public IPlaylist getTappedPlaylist() {
+        return this.tappedPlaylist;
+    }
+
+    public void setTappedPlaylist(IPlaylist tappedPlaylist) {
+        this.tappedPlaylist = tappedPlaylist;
+    }
+
+    public String getTappedFriend() {
+        return this.tappedFriend;
+    }
+
+    public void setTappedFriend(String tappedFriend) {
+        this.tappedFriend = tappedFriend;
+    }
+
+    public Boolean isPlaylistArrayLocked() {
+        return this.playlistArrayIsLocked;
+    }
+
+    public void lockPlaylistArray() {
+        this.playlistArrayIsLocked = true;
+    }
+
+    public void unlockPlaylistArray() {
+        this.playlistArrayIsLocked = false;
+    }
+
+    public List<String> getFriends() {
+        Set<String> friendSet = new HashSet<>(this.friends);
+        return new ArrayList<>(friendSet);
+    }
+
+    public void addFriends(List<String> newFriends) {
+        this.friends.addAll(newFriends);
+    }
+
+    private void fetchFriends() {
+        Query q = db.collection("users")
+                .whereEqualTo(
+                        "email",
+                        firebaseUser.getEmail());
+        Log.v("curremail", firebaseUser.getEmail());
+
+        q.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                          @Override
+                                          public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                              if (task.isSuccessful()) {
+
+                                                  if (!task.getResult().isEmpty()) {
+
+                                                      for (QueryDocumentSnapshot document : task.getResult()) {
+                                                          if (document.getData().containsKey("friends")) {
+
+                                                              List a = (List)document
+                                                                      .getData()
+                                                                      .get("friends");
+
+
+                                                              friends.clear();
+                                                              friends.addAll(a);
+
+                                                          }
+                                                      }
+                                                  }
+
+                                                  else {
+                                                      Toast.makeText(getApplicationContext(),
+                                                              "Could not fetch friends, please try again!",
+                                                              Toast.LENGTH_SHORT).show();
+                                                  }
+
+                                              }
+
+                                              else {
+                                                  task.getException().printStackTrace();
+                                              }
+                                          }
+                                      }
+
+        );
+    }
+
+
+    class runnableThread implements Runnable {
+        @Override
+        public void run() {
+            fetchFriends();
+        }
+
+    }
+
+    public void updateFriends() {
+        Runnable runnableThread = new runnableThread();
+        new Thread(runnableThread).start();
+    }
+
+
+
+
 }
+
+
 
 
 

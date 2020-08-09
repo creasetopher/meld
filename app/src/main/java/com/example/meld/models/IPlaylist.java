@@ -29,17 +29,14 @@ public interface IPlaylist {
 
     public String getDescription();
 
-    public Object getTracks();
+    public List<String> getTracks();
+
+    public void setTracks(List<String> tracks);
 
     public Object getMetadata();
 
     public PlaylistType getType();
 
     public List<Object> getImageUrls();
-
-
-
-
-
 
 }

@@ -24,6 +24,7 @@ import com.example.meld.models.IPlaylist;
 import com.example.meld.models.SpotifyPlaylist;
 import com.example.meld.models.YouTubePlaylist;
 import com.google.android.gms.common.api.Api;
+import com.google.api.services.youtube.model.Playlist;
 import com.spotify.sdk.android.auth.AuthorizationClient;
 import  com.spotify.sdk.android.auth.AuthorizationRequest;
 import com.spotify.sdk.android.auth.AuthorizationResponse;
@@ -60,9 +61,14 @@ public class SpotifyService {
     }
 
     private JSONObject userDataObject;
+    private JSONObject tracksOject;
+    private List<JSONObject> tracksOjects = new ArrayList<>();
+
     private JSONObject playlistObject;
     private ICallback callbacks;
     private ApiCallTypes callType;
+
+    private List<IPlaylist> playlistsToFetchTracks;
 
 
 
@@ -193,6 +199,8 @@ public class SpotifyService {
         requestQueue.add(stringRequest);
     }
 
+
+
     public void fetchTracks(
             final RequestQueue requestQueue,
             final String accessToken,
@@ -211,8 +219,10 @@ public class SpotifyService {
 
                         try {
                             //TODO: add tracks callback
-                            playlistObject = new JSONObject(response);
-                            callbacks.playlistsCallback(playlistObject);
+                            tracksOject = new JSONObject(response);
+                            tracksOjects.add(tracksOject);
+
+//                            callbacks.tracksCallback(tracksOject);
 //                            Log.v("playlists", playlistObject.toString());
 
 
@@ -358,6 +368,36 @@ public class SpotifyService {
 
 
 
+    public List<IPlaylist> getPlaylistsToFetchTracks() {
+        return playlistsToFetchTracks;
+    }
+
+    public void setPlaylistsToFetchTracks(List<IPlaylist> playlistId) {
+        this.playlistsToFetchTracks = playlistId;
+    }
+
+
+
+    public void fetchBatchTracks(RequestQueue requestQueue, String accessToken, List<IPlaylist> playlists) {
+        for(IPlaylist p : playlists) {
+            fetchTracks(requestQueue, accessToken, p.getId());
+
+        }
+
+        while (playlists.size() != tracksOjects.size()) {
+            try {
+                Thread.sleep(1000);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        this.callbacks.tracksCallback(tracksOjects);
+
+    }
+
+
     public Object getUserDataObject() {
         return userDataObject;
     }
@@ -374,6 +414,9 @@ public class SpotifyService {
     public ApiCallTypes getCallType() {
         return this.callType;
     }
+
+
+
 
 
 }

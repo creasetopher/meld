@@ -6,7 +6,13 @@
 
     <string name="title_home">Home</string>
     <string name="title_playlists">Playlists</string>
+    <string name="title_friend_playlists">Friend Playlists</string>
+    <string name="title_playlist_share">Share Playlists</string>
+
+
     <string name="title_friends">Friends</string>
+
+    <string name="title_tracks">Tracks</string>
 
     <string name="prompt_email">username (not email)</string>
     <string name="prompt_password">Password</string>

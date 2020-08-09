@@ -58,25 +58,7 @@ public class JsonPlaylistParser {
                     parsedPlaylist.setImageUrls(images);
 //                    Log.v("dispplay2?", (new JSONObject(parsedPlaylist.getMetadata().toString())).getString("display_name"));
                     res.add(parsedPlaylist);
-//                }
 
-
-//                if (rawPlaylist.getString("type").equals("youtube")) {
-//                    YouTubePlaylist parsedPlaylist = new YouTubePlaylist();
-//
-//                    Log.v("playlistact", ((JSONObject) playlists.get(i)).toString());
-//
-//                    parsedPlaylist.setName(rawPlaylist.getString("name"));
-//                    parsedPlaylist.setId(rawPlaylist.getString("id"));
-//
-//                    Log.v("metadata", (rawPlaylist.getJSONObject("owner").toString()));
-//
-//
-//                    parsedPlaylist.setDescription(rawPlaylist.getString("description"));
-//                    parsedPlaylist.setType(IPlaylist.PlaylistType.YOUTUBE);
-//                    res.add(parsedPlaylist);
-//
-//                }
                 }
 
 
@@ -86,6 +68,47 @@ public class JsonPlaylistParser {
         }
         return res;
 
+    }
+
+
+    public static IPlaylist addTracks(IPlaylist playlist, JSONObject trackResponseObject) {
+
+        List<String> trackTitles = new ArrayList<>();
+
+        try {
+            JSONArray tracksJsonArray = trackResponseObject.getJSONArray("items");
+
+            for(int i = 0; i < tracksJsonArray.length(); i++) {
+                if( i == 0) {
+                    Log.v("abovetrack", tracksJsonArray.getJSONObject(i).toString());
+                }
+                JSONObject trackObject = tracksJsonArray.getJSONObject(i).getJSONObject("track");
+
+                JSONObject jsonObjWithArtistInfo = (JSONObject)trackObject.getJSONObject("album").getJSONArray("artists").get(0);
+//
+                String artistName = jsonObjWithArtistInfo.getString("name");
+
+                String nameFromJson = trackObject.getString("name");
+
+//                Log.v("artist1234", artistName);
+//                Log.v("name1234", nameFromJson);
+
+                String trackTitle = String.format("%s - %s", artistName, nameFromJson);
+
+                trackTitles.add(trackTitle);
+
+            }
+
+            if(trackTitles.size() > 0) {
+                playlist.setTracks(trackTitles);
+            }
+
+//            Log.v("itemsasArray", tracksJsonArray.toString());
+        } catch (JSONException e) {
+
+            e.printStackTrace();
+        }
+        return null;
     }
 
 //    public static List<IPlaylist> toPlaylistArray(JSONObject playlistsObjects) {

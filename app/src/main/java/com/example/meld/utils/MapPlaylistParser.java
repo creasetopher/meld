@@ -21,21 +21,30 @@ public class MapPlaylistParser {
 
     public static List<IPlaylist> toArrayList(Map<Playlist, List<PlaylistItem>> playlistMap) {
         List<IPlaylist> res = new ArrayList<>();
-        for (Playlist playlist : playlistMap.keySet()) {
-            Log.v("a playlistr", playlist.toString());
+        if(playlistMap != null && playlistMap.size() > 0) {
+            for (Playlist playlist : playlistMap.keySet()) {
+                Log.v("a playlistr", playlist.toString());
 
-            YouTubePlaylist youTubePlaylist = new YouTubePlaylist();
+                YouTubePlaylist youTubePlaylist = new YouTubePlaylist();
 
-            youTubePlaylist.setType(IPlaylist.PlaylistType.YOUTUBE);
-            youTubePlaylist.setName(playlist.getSnippet().getTitle());
-            youTubePlaylist.setId(playlist.getId());
-            youTubePlaylist.setDescription(playlist.getSnippet().getDescription());
-            youTubePlaylist.setVisibility(playlist.getStatus().getPrivacyStatus());
+                youTubePlaylist.setType(IPlaylist.PlaylistType.YOUTUBE);
+                youTubePlaylist.setName(playlist.getSnippet().getTitle());
+                youTubePlaylist.setId(playlist.getId());
+                youTubePlaylist.setDescription(playlist.getSnippet().getDescription());
+                youTubePlaylist.setVisibility(playlist.getStatus().getPrivacyStatus());
 
-            res.add(youTubePlaylist);
+                List<String> tracks = new ArrayList<>();
 
+                for(PlaylistItem track : playlistMap.get(playlist)) {
+                    tracks.add(track.getSnippet().getTitle());
+                }
+
+                youTubePlaylist.setTracks(tracks);
+
+                res.add(youTubePlaylist);
+
+            }
         }
-        Log.v("from map parser", res.toString());
     return res;
 
     }

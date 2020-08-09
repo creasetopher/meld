@@ -12,6 +12,7 @@ import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
@@ -21,19 +22,25 @@ import com.example.meld.models.ICallback;
 import com.example.meld.models.IPlaylist;
 import com.example.meld.models.IUser;
 import com.example.meld.models.YouTubePlaylist;
+import com.example.meld.services.NetworkRequest;
 import com.example.meld.services.SpotifyService;
+import com.example.meld.ui.friends.FriendsFragment;
 import com.example.meld.utils.JsonPlaylistParser;
 import com.example.meld.utils.MapPlaylistParser;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.api.services.youtube.model.Playlist;
 import com.google.api.services.youtube.model.PlaylistItem;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import info.androidhive.fontawesome.FontDrawable;
 
 public class PlaylistFragment extends Fragment {
 
@@ -54,6 +61,9 @@ public class PlaylistFragment extends Fragment {
     RequestQueue requestQueue;
 
     private Handler textHandler = new Handler();
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseUser firebaseUser;
+
 
 
 
@@ -64,14 +74,10 @@ public class PlaylistFragment extends Fragment {
 
         listAdapter = new ArrayAdapter(
                 getContext(),
-                android.R.layout.simple_list_item_1,
+                android.R.layout.simple_selectable_list_item,
                 allPlaylists);
 
         requestQueue = Volley.newRequestQueue(getContext());
-
-
-
-
         return root;
     }
 
@@ -80,6 +86,7 @@ public class PlaylistFragment extends Fragment {
 
         theActivity = (MainActivity)getActivity();
 
+        firebaseUser = theActivity.getFirebaseUser();
         //this is how the main activity sends playlist data to playlist frag
         // after activty fetches playlists, it hands data back to this frag through
         // this.playlistsCallback
@@ -94,22 +101,47 @@ public class PlaylistFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                IPlaylist element = (IPlaylist) listView.getItemAtPosition(position);
+                IPlaylist playlist = (IPlaylist) listView.getItemAtPosition(position);
+                theActivity.setTappedPlaylist(playlist);
+                if(playlist.getTracks() != null) {
+                    NavHostFragment.findNavController(PlaylistFragment.this)
+                            .navigate(R.id.action_navigation_playlists_to_navigation_tracks);
+//                Log.v("thetracks", playlist.getTracks().toString());
+                }
             }
         });
 
+        if(theActivity.doesHaveSpotify()) {
+            theActivity.fetchSpotifyPlaylists();
 
-        theActivity.fetchSpotifyPlaylists();
-        theActivity.fetchYouTubePlaylists();
 
+        }
+
+        if(theActivity.doesHaveYouTube()) {
+            theActivity.fetchYouTubePlaylists();
+        }
 
     }
 
-    private void populatePlaylistView() {
+    private void addSpotifyPlaylists(){
+        List<IPlaylist> spotifyPlaylists = JsonPlaylistParser.toArrayList(spotifyPlaylistsObject);
+        populatePlaylistView(spotifyPlaylists);
+    }
+
+    private void addYouTubePlaylists(){
+        List<IPlaylist> youTubePlaylists = MapPlaylistParser.toArrayList(youTubePlaylistMap);
+        populatePlaylistView(youTubePlaylists);
+    }
+
+    private void populatePlaylistView(List<IPlaylist> playlists) {
 //        allPlaylists.clear();
-        allPlaylists.addAll(JsonPlaylistParser.toArrayList(spotifyPlaylistsObject));
-        allPlaylists.addAll(MapPlaylistParser.toArrayList(youTubePlaylistMap));
+//        arrayIsLocked = true;
+
+        this.theActivity.lockPlaylistArray();
+        allPlaylists.addAll(playlists);
         listAdapter.notifyDataSetChanged();
+        this.theActivity.unlockPlaylistArray();
+//        arrayIsLocked = false;
     }
 
 
@@ -123,8 +155,38 @@ public class PlaylistFragment extends Fragment {
         }
 
         public void playlistsCallback(Object obj) {
+
             spotifyPlaylistsObject = (JSONObject) obj;
-            populatePlaylistView();
+
+            List<IPlaylist> spotifyPlaylists = JsonPlaylistParser.toArrayList(spotifyPlaylistsObject);
+
+            addSpotifyPlaylists();
+
+
+            theActivity.fetchSpotifyPlaylistsTracks(spotifyPlaylists);
+
+
+
+        }
+
+
+        // this is called each time the user views the playlist frag
+        // a necessary evil to ensure the tracks for each spotify playlists are fetched
+        @Override
+        public void tracksCallback(Object obj) {
+
+            List<IPlaylist> spotifyPlaylists = JsonPlaylistParser.toArrayList(spotifyPlaylistsObject);
+
+
+            List<JSONObject> tobjs = (List<JSONObject>)obj;
+//            Log.v("tracks", tobjs.get(0).toString());
+
+            for(int i = 0; i < tobjs.size(); i++){
+                JsonPlaylistParser.addTracks(allPlaylists.get(i), tobjs.get(i));
+            }
+
+            persistAllPlaylists();
+
 
         }
     }
@@ -141,11 +203,10 @@ public class PlaylistFragment extends Fragment {
 
             youTubePlaylistMap = (Map<Playlist, List<PlaylistItem>>) obj;
 
-
 //            Log.v("FROM PACT", youTubePlaylistMap.toString());
 
 
-            textHandler.post(() -> populatePlaylistView());
+            textHandler.post(() -> addYouTubePlaylists());
 
 
 //        return res;
@@ -154,14 +215,49 @@ public class PlaylistFragment extends Fragment {
 
         }
 
+        @Override
+        public void tracksCallback(Object obj) {
+//            JSONObject tracks = (JSONObject)obj;
+//            Log.v("tracks", tracks.toString());
+        }
 
     }
 
 
+    private void addPlaylistToDatabase(IPlaylist playlist) {
+
+        Map<String, Object> playlistMap = new HashMap<>();
+
+        playlistMap.put("name", playlist.getName());
+        playlistMap.put("owner", firebaseUser.getEmail());
+        playlistMap.put("type", playlist.getType().toString());
+        playlistMap.put("tracks", playlist.getTracks());
+
+        NetworkRequest.FirestoreDBOperationCreate runnableThread =
+                new NetworkRequest.FirestoreDBOperationCreate(this.db, "playlists", playlistMap);
+
+
+        new Thread(runnableThread).start();
 
 
 
 
+    }
 
+    public void persistAllPlaylists() {
+        if(!theActivity.isPlaylistArrayLocked()) {
+            theActivity.lockPlaylistArray();
+            for (IPlaylist playlist : allPlaylists) {
+                addPlaylistToDatabase(playlist);
+            }
+            theActivity.unlockPlaylistArray();
+        }
+    }
+
+//    private void addTracks(IPlaylist, )
+
+
+
+    //fetch tracks!!!!!!!
 
 }

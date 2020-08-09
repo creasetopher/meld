@@ -18,7 +18,7 @@ public class SpotifyPlaylist implements IPlaylist{
     String name;
     String description;
     String id;
-    Object tracks;
+    List<String> tracks;
     Object metadata;
     List<Object> imageUrls;
     PlaylistType type;
@@ -59,7 +59,7 @@ public class SpotifyPlaylist implements IPlaylist{
     }
 
     @Override
-    public Object getTracks() {
+    public List<String> getTracks() {
         return this.tracks;
     }
 
@@ -93,7 +93,7 @@ public class SpotifyPlaylist implements IPlaylist{
         this.id = id;
     }
 
-    public void setTracks(Object tracks) {
+    public void setTracks(List<String> tracks) {
         this.tracks = tracks;
     }
 

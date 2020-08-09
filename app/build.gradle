@@ -29,9 +29,9 @@ android {
 }
 
 dependencies {
-    implementation 'info.androidhive:fontawesome:0.0.5'
+//    implementation 'info.androidhive:fontawesome:0.0.5'
     implementation 'com.google.firebase:firebase-auth:19.3.2'
-    implementation 'com.google.firebase:firebase-firestore:21.5.0'
+    implementation ('com.google.firebase:firebase-firestore:21.5.0')
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.android.volley:volley:1.1.1'
     implementation project(':spotify-app-remote-release-0.7.0')
@@ -52,9 +52,12 @@ dependencies {
     implementation 'pub.devrel:easypermissions:0.3.0'
     implementation('com.google.api-client:google-api-client-android:1.22.0') {
         exclude group: 'org.apache.httpcomponents'
+        exclude group:'com.google.guava'
     }
     implementation('com.google.apis:google-api-services-youtube:v3-rev183-1.22.0') {
         exclude group: 'org.apache.httpcomponents'
+        exclude group:'com.google.guava'
+
     }
 
 

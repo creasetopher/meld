@@ -86,6 +86,29 @@ public class HomeFragment extends Fragment {
             }
         });
 
+        if(theActivity.doesHaveSpotify()) {
+            disableSpotifyLoginButton();
+        }
+
+        if(theActivity.doesHaveYouTube()) {
+            disableYouTubeLoginButton();
+        }
+
+
+    }
+
+    private void disableSpotifyLoginButton() {
+        View spotifyButtonView = root.findViewById(R.id.spotify_button_view);
+        spotifyButtonView.setVisibility(View.INVISIBLE);
+        View foundSpotifyTextView = root.findViewById(R.id.found_spotify_view);
+        foundSpotifyTextView.setVisibility(View.VISIBLE);
+    }
+
+    private void disableYouTubeLoginButton() {
+        View youTubeButtonView = root.findViewById(R.id.youtube_button_view);
+        youTubeButtonView.setVisibility(View.INVISIBLE);
+        View foundYoutubeText = root.findViewById(R.id.found_youtube_view);
+        foundYoutubeText.setVisibility(View.VISIBLE);
     }
 
 
@@ -100,16 +123,18 @@ public class HomeFragment extends Fragment {
        // make the playlist button visible here, after user data and user id is fetched
        public void userDataCallback(Object obj, IUser updatedUser) {
            user = updatedUser;
-
-           View spotifyButtonView = root.findViewById(R.id.spotify_button_view);
-           spotifyButtonView.setVisibility(View.INVISIBLE);
-           View foundSpotifyTextView = root.findViewById(R.id.found_spotify_view);
-           foundSpotifyTextView.setVisibility(View.VISIBLE);
+           theActivity.spotifyValidated();
+           disableSpotifyLoginButton();
 
        }
 
        public void playlistsCallback(Object obj) {
 
+
+       }
+
+       @Override
+       public void tracksCallback(Object obj) {
 
        }
    }
@@ -120,6 +145,7 @@ public class HomeFragment extends Fragment {
 
         public void userDataCallback(Object obj, IUser updatedUser) {
             user = updatedUser;
+            theActivity.youTubeValidated();
             try {
                 //dont get token in main thread, maybe give it back in callback?
 //                Log.v("credential from home from user", Boolean.toString(user.getGoogleUserObject() != null));
@@ -129,10 +155,7 @@ public class HomeFragment extends Fragment {
                 e.printStackTrace();
             }
 
-            View youTubeButtonView = root.findViewById(R.id.youtube_button_view);
-            youTubeButtonView.setVisibility(View.INVISIBLE);
-            View foundYoutubeText = root.findViewById(R.id.found_youtube_view);
-            foundYoutubeText.setVisibility(View.VISIBLE);
+            disableYouTubeLoginButton();
 
 
         }
@@ -158,6 +181,11 @@ public class HomeFragment extends Fragment {
             // need a youtube playlist impl
             Log.v("FROM PACT", obj.toString());
 
+
+        }
+
+        @Override
+        public void tracksCallback(Object obj) {
 
         }
 
