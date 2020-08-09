@@ -91,6 +91,7 @@ public class TracksFragment extends Fragment {
         sharePlaylistButton = view.findViewById(R.id.share_playlist_button_from_tracks_fragment);
         thePlaylist = theActivity.getTappedPlaylist();
 
+        tracks.clear();
         tracks.addAll(thePlaylist.getTracks());
         listAdapter.notifyDataSetChanged();
 

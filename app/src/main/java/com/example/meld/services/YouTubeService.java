@@ -46,9 +46,6 @@ import javax.crypto.AEADBadTagException;
 
 public class YouTubeService implements EasyPermissions.PermissionCallbacks {
 
-    public static final int REQUEST_CODE_PERMISSION_GET_ACCOUNTS = 1;
-    public static final int REQUEST_CODE_SELECT_ACCOUNT = 2;
-
     public static final int SELECT_YT_ACCOUNT_CODE = 1004;
 
 
@@ -83,7 +80,6 @@ public class YouTubeService implements EasyPermissions.PermissionCallbacks {
     }
 
     public void authenticate() {
-        Log.v("authcalled", "isit");
 
         if (EasyPermissions.hasPermissions(
                 this.activityContext, Manifest.permission.GET_ACCOUNTS)) {
@@ -95,7 +91,6 @@ public class YouTubeService implements EasyPermissions.PermissionCallbacks {
                 credential.setSelectedAccountName(accountName);
                 fetchUserData();
                 try {
-                    Log.v("credential", credential.getToken());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -123,7 +118,6 @@ public class YouTubeService implements EasyPermissions.PermissionCallbacks {
     @Override
     public void onPermissionsGranted(int requestCode, List<String> list) {
         Toast.makeText(activityContext.getApplicationContext(), "Permissions granted! Yay!", Toast.LENGTH_SHORT).show();
-        Log.v("callback", "isit");
     }
 
     @Override

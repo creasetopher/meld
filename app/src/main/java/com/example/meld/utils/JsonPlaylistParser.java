@@ -14,7 +14,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class JsonPlaylistParser {
 
@@ -71,7 +73,12 @@ public class JsonPlaylistParser {
     }
 
 
-    public static IPlaylist addTracks(IPlaylist playlist, JSONObject trackResponseObject) {
+    public static void addTracks(IPlaylist playlist, JSONObject trackResponseObject) {
+
+        if(playlist.getName().equals("chris")){
+            Log.v("atrackresp", trackResponseObject.toString());
+
+        }
 
         List<String> trackTitles = new ArrayList<>();
 
@@ -108,8 +115,101 @@ public class JsonPlaylistParser {
 
             e.printStackTrace();
         }
-        return null;
     }
+
+
+    public static void addTracksAllPlaylists(List<IPlaylist> allPlaylists, List<JSONObject> trackResponseObjects) {
+        Log.v("allplaylists", allPlaylists.toString());
+        Log.v("playlistid", allPlaylists.get(0).getId());
+
+
+        Map<String, IPlaylist> playlistMap = new HashMap<>();
+
+//        allPlaylists.stream().map( p -> playlistMap.put(p.getId(), p));
+
+
+        for(IPlaylist playlist : allPlaylists) {
+            playlistMap.putIfAbsent(playlist.getId(), playlist);
+        }
+
+
+        Map<String, JSONObject> trackMap = new HashMap<>();
+
+
+        for(JSONObject trackObj : trackResponseObjects) {
+
+
+            try {
+                String reqUrl = trackObj.getString("href");
+                Log.v("requrl", reqUrl);
+
+                String playlistId = reqUrl.substring(
+                        reqUrl.indexOf("playlists") + 10,
+                        reqUrl.indexOf('/',
+                                reqUrl.indexOf("playlists") + 10));
+
+                trackMap.put(playlistId, trackObj);
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        for(String playlistId : playlistMap.keySet()) {
+            IPlaylist thePlaylist = playlistMap.get(playlistId);
+            JSONObject trackObj = trackMap.getOrDefault(playlistId, null);
+
+            if(trackObj != null) {
+                Log.v("matchingtrack!", trackObj.toString());
+                addTracks(thePlaylist, trackObj);
+            }
+
+
+
+        }
+
+//
+//
+//        List<String> trackTitles = new ArrayList<>();
+//
+//        try {
+//            JSONArray tracksJsonArray = trackResponseObject.getJSONArray("items");
+//
+//            for(int i = 0; i < tracksJsonArray.length(); i++) {
+//                if( i == 0) {
+//                    Log.v("abovetrack", tracksJsonArray.getJSONObject(i).toString());
+//                }
+//                JSONObject trackObject = tracksJsonArray.getJSONObject(i).getJSONObject("track");
+//
+//                JSONObject jsonObjWithArtistInfo = (JSONObject)trackObject.getJSONObject("album").getJSONArray("artists").get(0);
+////
+//                String artistName = jsonObjWithArtistInfo.getString("name");
+//
+//                String nameFromJson = trackObject.getString("name");
+//
+////                Log.v("artist1234", artistName);
+////                Log.v("name1234", nameFromJson);
+//
+//                String trackTitle = String.format("%s - %s", artistName, nameFromJson);
+//
+//                trackTitles.add(trackTitle);
+//
+//            }
+//
+//            if(trackTitles.size() > 0) {
+//                playlist.setTracks(trackTitles);
+//            }
+//
+////            Log.v("itemsasArray", tracksJsonArray.toString());
+//        } catch (JSONException e) {
+//
+//            e.printStackTrace();
+//        }
+    }
+
+
 
 //    public static List<IPlaylist> toPlaylistArray(JSONObject playlistsObjects) {
 //        List<IPlaylist> res = new ArrayList<>();

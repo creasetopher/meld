@@ -37,9 +37,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class PlaylistFragment extends Fragment {
@@ -103,6 +105,7 @@ public class PlaylistFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 IPlaylist playlist = (IPlaylist) listView.getItemAtPosition(position);
                 theActivity.setTappedPlaylist(playlist);
+//                Log.v("from playlistsact getTracksWereFetched()", Boolean.toString(theActivity.getTracksWereFetched()));
                 if(playlist.getTracks() != null && theActivity.getTracksWereFetched()) {
                     NavHostFragment.findNavController(PlaylistFragment.this)
                             .navigate(R.id.action_navigation_playlists_to_navigation_tracks);
@@ -191,12 +194,24 @@ public class PlaylistFragment extends Fragment {
             List<JSONObject> tobjs = (List<JSONObject>)obj;
 //            Log.v("tracks", tobjs.get(0).toString());
 
-            for(int i = 0; i < tobjs.size(); i++){
-                JsonPlaylistParser.addTracks(allPlaylists.get(i), tobjs.get(i));
-            }
+            textHandler.post( () -> {
 
-            theActivity.setTracksWereFetched(true);
+                List<IPlaylist> actualSpotifyPLaylists = allPlaylists.stream().filter( p -> p.getType().equals(IPlaylist.PlaylistType.SPOTIFY)).collect(Collectors.toList());
 
+
+                JsonPlaylistParser.addTracksAllPlaylists(allPlaylists, tobjs);
+
+
+//                for(int i = 0; i < actualSpotifyPLaylists.size(); i++){
+//                    JsonPlaylistParser.addTracks(allPlaylists.get(i), tobjs.get(i));
+//                }
+
+                Log.v("play frag about to call","tracks are ready -> setTracksWereFetched()");
+
+                theActivity.setTracksWereFetched(true);
+                listAdapter.notifyDataSetChanged();
+
+            });
 
             if(theActivity.isNewUser()){
                 persistAllPlaylists();

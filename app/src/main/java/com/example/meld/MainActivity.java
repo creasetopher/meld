@@ -111,7 +111,6 @@ public class MainActivity extends AppCompatActivity {
     RequestQueue requestQueue;
     IUser currentUser;
 
-    GoogleAccountCredential credential;
     private String spotifyAccessToken;
 
     private Boolean hasSpotify = false;
@@ -142,9 +141,6 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
 
-        credential = GoogleAccountCredential.usingOAuth2(
-                this, Arrays.asList("https://www.googleapis.com/auth/youtube.readonly"))
-                .setBackOff(new ExponentialBackOff());
 
 
         firebaseAuth = FirebaseAuth.getInstance();
@@ -188,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public Boolean getTracksWereFetched() {
+        Log.v("from MainAct", "getTracksWereFetched() called");
         return this.tracksWereFetched;
     }
 
@@ -287,11 +284,9 @@ public class MainActivity extends AppCompatActivity {
 
     @AfterPermissionGranted(YouTubeService.SELECT_YT_ACCOUNT_CODE)
     public void authenticateYouTube() {
-//        Toast.makeText(getApplicationContext(), "Permissions granted! Yay!", Toast.LENGTH_SHORT).show();
 
         youTubeService.authenticate();
 
-//        this.authenticate();
     }
 
     public Boolean isNewUser() {
@@ -304,45 +299,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-//    @AfterPermissionGranted(REQ)
-//    public void authenticate() {
-//        Log.v("authCalled","it was" );
-//
-//
-//        if (EasyPermissions.hasPermissions(
-//                this, Manifest.permission.GET_ACCOUNTS)) {
-//
-//            String accountName = this.getPreferences(Context.MODE_PRIVATE)
-//                    .getString("accountName", null);
-//
-//            if (accountName != null) {
-//
-//
-//                credential.setSelectedAccountName(accountName);
-////                fetchUserData();
-//                try {
-//                    Log.v("credential", credential.getToken());
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-////                fetchPlaylists();
-//            } else {
-//
-//                // select a g account
-//                this.startActivityForResult(
-//                        credential.newChooseAccountIntent(),
-//                        0);
-////                fetchUserData();
-//            }
-//        } else {
-//            // Request the GET_ACCOUNTS permission via a user dialog
-//            EasyPermissions.requestPermissions(this,
-//                    "Please authenticate using a Google Account on this device.",
-//                    REQ,
-//                    Manifest.permission.GET_ACCOUNTS);
-//        }
-//
 
 
     public void fetchSpotifyPlaylists() {
@@ -395,11 +351,6 @@ public class MainActivity extends AppCompatActivity {
 
         new Thread(runnableThread).start();
 
-//        spotifyService.fetchTracks(
-//                requestQueue,
-//                spotifyAccessToken,
-//                playlistId
-//        );
     }
 
 
@@ -409,6 +360,8 @@ public class MainActivity extends AppCompatActivity {
 
     public class SpotifyCallbacks implements ICallback {
 
+
+//        notify tracks ready here?
         @Override
         public void tracksCallback(Object obj) {
             fragmentSpotifyCallbacks.tracksCallback(obj);
